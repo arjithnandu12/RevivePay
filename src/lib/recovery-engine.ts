@@ -126,7 +126,7 @@ export async function runRecoveryEngine(
 
   if (
     payment.recoveryStatus ===
-    "recovered"
+    "RevivePay"
   ) {
     return {
       success: true,
@@ -134,7 +134,7 @@ export async function runRecoveryEngine(
       paymentId,
 
       message:
-        "Payment has already been recovered.",
+        "Payment has already been RevivePay.",
 
       duplicate: true,
     };
@@ -717,7 +717,7 @@ export async function runRecoveryEngine(
         attemptedAt:
           new Date(),
 
-        recoveredAmount:
+        RevivePayAmount:
           0,
 
         attemptNumber: currentAttemptNumber,
@@ -1157,7 +1157,7 @@ export async function runRecoveryEngine(
       });
 
       console.log(
-        "Recovered AI call initiated."
+        "RevivePay AI call initiated."
       );
     } catch (error) {
       channelError =

@@ -19,13 +19,13 @@ export async function GET() {
 
     const dayBuckets = new Map<
       string,
-      { recovered: number; failed: number; stillFailed: number }
+      { RevivePay: number; failed: number; stillFailed: number }
     >();
 
     for (let i = 0; i < DAYS; i++) {
       const d = new Date(since);
       d.setDate(d.getDate() + i);
-      dayBuckets.set(dateKey(d), { recovered: 0, failed: 0, stillFailed: 0 });
+      dayBuckets.set(dateKey(d), { RevivePay: 0, failed: 0, stillFailed: 0 });
     }
 
     for (const p of payments) {
@@ -34,23 +34,23 @@ export async function GET() {
 
       if (p.status === "failed") {
         bucket.failed += 1;
-        if (p.recoveryStatus !== "recovered") bucket.stillFailed += 1;
+        if (p.recoveryStatus !== "RevivePay") bucket.stillFailed += 1;
       }
-      if (p.recoveryStatus === "recovered") {
-        bucket.recovered += p.amount;
+      if (p.recoveryStatus === "RevivePay") {
+        bucket.RevivePay += p.amount;
       }
     }
 
     const recoveryRateSeries: { date: string; rate: number }[] = [];
-    const revenueRecoveredSeries: { date: string; amount: number }[] = [];
+    const revenueRevivePaySeries: { date: string; amount: number }[] = [];
     const failedPaymentsSeries: { date: string; count: number }[] = [];
 
     for (const [date, bucket] of dayBuckets) {
-      const recoveredCount = bucket.failed - bucket.stillFailed;
-      const rate = bucket.failed > 0 ? Math.round((recoveredCount / bucket.failed) * 100) : 0;
+      const RevivePayCount = bucket.failed - bucket.stillFailed;
+      const rate = bucket.failed > 0 ? Math.round((RevivePayCount / bucket.failed) * 100) : 0;
 
       recoveryRateSeries.push({ date, rate });
-      revenueRecoveredSeries.push({ date, amount: bucket.recovered });
+      revenueRevivePaySeries.push({ date, amount: bucket.RevivePay });
       failedPaymentsSeries.push({ date, count: bucket.failed });
     }
 
@@ -58,27 +58,27 @@ export async function GET() {
       .select("amount failureReason recoveryStatus")
       .lean();
 
-    const reasonGroups = new Map<string, { recovered: number; success: number; total: number }>();
+    const reasonGroups = new Map<string, { RevivePay: number; success: number; total: number }>();
 
     for (const p of allFailed) {
       const key = p.failureReason ?? "Unknown";
-      const g = reasonGroups.get(key) ?? { recovered: 0, success: 0, total: 0 };
+      const g = reasonGroups.get(key) ?? { RevivePay: 0, success: 0, total: 0 };
       g.total += 1;
-      if (p.recoveryStatus === "recovered") {
+      if (p.recoveryStatus === "RevivePay") {
         g.success += 1;
-        g.recovered += p.amount;
+        g.RevivePay += p.amount;
       }
       reasonGroups.set(key, g);
     }
 
     const byFailureReason = Array.from(reasonGroups.entries()).map(([reason, g]) => ({
       reason,
-      recovered: g.recovered,
+      RevivePay: g.RevivePay,
       rate: g.total > 0 ? Math.round((g.success / g.total) * 100) : 0,
     }));
 
-    const recoveredByPlan = await Payment.aggregate([
-      { $match: { recoveryStatus: "recovered" } },
+    const RevivePayByPlan = await Payment.aggregate([
+      { $match: { recoveryStatus: "RevivePay" } },
       {
         $lookup: {
           from: "customers",
@@ -91,7 +91,7 @@ export async function GET() {
       {
         $group: {
           _id: "$customer.plan",
-          recovered: { $sum: "$amount" },
+          RevivePay: { $sum: "$amount" },
           count: { $sum: 1 },
         },
       },
@@ -115,40 +115,40 @@ export async function GET() {
       failedByPlan.map((p) => [p._id as string, p.total as number])
     );
 
-    const byCustomerSegment = recoveredByPlan.map((r) => {
+    const byCustomerSegment = RevivePayByPlan.map((r) => {
       const total = failedByPlanMap.get(r._id) ?? 0;
       return {
         segment: r._id ?? "Unknown",
-        recovered: r.recovered,
+        RevivePay: r.RevivePay,
         rate: total > 0 ? Math.round((r.count / total) * 100) : 0,
       };
     });
 
     const attempts = await RecoveryAttempt.find({})
-      .select("strategy status recoveredAmount")
+      .select("strategy status RevivePayAmount")
       .lean();
 
-    const strategyGroups = new Map<string, { recovered: number; success: number; total: number }>();
+    const strategyGroups = new Map<string, { RevivePay: number; success: number; total: number }>();
 
     for (const a of attempts) {
-      const g = strategyGroups.get(a.strategy) ?? { recovered: 0, success: 0, total: 0 };
+      const g = strategyGroups.get(a.strategy) ?? { RevivePay: 0, success: 0, total: 0 };
       g.total += 1;
-      if (a.status === "success" || a.status === "recovered") {
+      if (a.status === "success" || a.status === "RevivePay") {
         g.success += 1;
-        g.recovered += a.recoveredAmount ?? 0;
+        g.RevivePay += a.RevivePayAmount ?? 0;
       }
       strategyGroups.set(a.strategy, g);
     }
 
     const byStrategy = Array.from(strategyGroups.entries()).map(([strategy, g]) => ({
       strategy: strategy.replace(/_/g, " "),
-      recovered: g.recovered,
+      RevivePay: g.RevivePay,
       rate: g.total > 0 ? Math.round((g.success / g.total) * 100) : 0,
     }));
 
     return NextResponse.json({
       recoveryRateSeries,
-      revenueRecoveredSeries,
+      revenueRevivePaySeries,
       failedPaymentsSeries,
       byFailureReason,
       byCustomerSegment,

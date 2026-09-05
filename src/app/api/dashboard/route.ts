@@ -27,12 +27,15 @@ export async function GET() {
 
     const successfulRecoveryByPayment = new Map<string, number>();
     for (const attempt of recoveryAttempts) {
-      if (attempt.status === "success" || attempt.status === "recovered") {
-        successfulRecoveryByPayment.set(attempt.paymentId, attempt.recoveredAmount);
+      const doc = attempt as unknown as Record<string, unknown>;
+      if (attempt.status === "success" || attempt.status === "RevivePay" || doc.status === "recovered") {
+        const rawAmt = doc.RevivePayAmount ?? doc.recoveredAmount ?? doc.amount ?? 0;
+        const numAmt = Number(rawAmt);
+        successfulRecoveryByPayment.set(attempt.paymentId, Number.isFinite(numAmt) ? numAmt : 0);
       }
     }
-    const recoveredRevenue = Array.from(successfulRecoveryByPayment.values())
-      .reduce((sum, amount) => sum + amount, 0);
+    const RevivePayRevenue = Array.from(successfulRecoveryByPayment.values())
+      .reduce((sum, amount) => sum + (Number.isFinite(amount) ? amount : 0), 0);
 
     const successfulRecoveries = successfulRecoveryByPayment.size;
 
@@ -41,42 +44,59 @@ export async function GET() {
         ? (successfulRecoveries / failedPayments.length) * 100
         : 0;
 
-    const recoveredPaymentIds = new Set(successfulRecoveryByPayment.keys());
-    const eligibleFailedRevenue = failedPayments
-      .filter((payment) => !recoveredPaymentIds.has(payment.paymentId))
-      .reduce((sum, payment) => sum + payment.amount, 0) + recoveredRevenue;
+    const RevivePayPaymentIds = new Set(successfulRecoveryByPayment.keys());
+    const failedUnrecovered = failedPayments
+      .filter((payment) => !RevivePayPaymentIds.has(payment.paymentId))
+      .reduce((sum, payment) => sum + (Number.isFinite(payment.amount) ? payment.amount : 0), 0);
+    const eligibleFailedRevenue = failedUnrecovered + RevivePayRevenue;
     const amountRecoveryRate = eligibleFailedRevenue > 0
-      ? (recoveredRevenue / eligibleFailedRevenue) * 100
+      ? (RevivePayRevenue / eligibleFailedRevenue) * 100
       : 0;
     const recoveryDurations = recoveryAttempts
-      .filter((attempt) => attempt.status === "success" || attempt.status === "recovered")
+      .filter((attempt) => attempt.status === "success" || attempt.status === "RevivePay")
       .map((attempt) => new Date(attempt.updatedAt).getTime() - new Date(attempt.attemptedAt).getTime())
       .filter((duration) => Number.isFinite(duration) && duration >= 0);
     const averageRecoveryTimeMinutes = recoveryDurations.length > 0
       ? Math.round(recoveryDurations.reduce((sum, duration) => sum + duration, 0) / recoveryDurations.length / 60000)
       : 0;
 
+    failedPayments.sort((a, b) => {
+      const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+
     const recentFailedPayments = failedPayments
-      .slice(-10)
-      .reverse()
+      .slice(0, 10)
       .map((payment) => {
-        const recovery = recoveryAttempts.find(
-          (attempt) =>
-            attempt.paymentId === payment.paymentId
-        );
+        const paymentAttempts = recoveryAttempts
+          .filter((attempt) => attempt.paymentId === payment.paymentId)
+          .sort((a, b) => new Date(b.attemptedAt || b.createdAt || 0).getTime() - new Date(a.attemptedAt || a.createdAt || 0).getTime());
+        const recovery = paymentAttempts[0] || null;
+
+        let mappedStatus: string = payment.recoveryStatus;
+        if (payment.recoveryStatus === "RevivePay" || recovery?.status === "success" || recovery?.status === "RevivePay") {
+          mappedStatus = "RevivePay";
+        } else if (payment.recoveryStatus === "unrecoverable") {
+          mappedStatus = "unrecoverable";
+        } else if (recovery?.failureReason === "retry_limit_reached") {
+          mappedStatus = "retry_limit_reached";
+        } else if (recovery?.status) {
+          mappedStatus = recovery.status;
+        }
 
         return {
           paymentId: payment.paymentId,
           customerId: payment.customerId,
           amount: payment.amount,
           failureReason: payment.failureReason,
-          strategy: recovery?.strategy || "Not analyzed",
-          recoveryStatus: recovery?.status || "pending",
-          recoveryProbability: recovery?.recoveryProbability ?? null,
+          strategy: recovery?.strategy || payment.recoveryAction || "Not analyzed",
+          recoveryStatus: mappedStatus || "pending",
+          recoveryProbability: recovery?.recoveryProbability ?? (payment.recoveryStatus === "RevivePay" ? 0.95 : 0.4),
           recommendedDelayMinutes: recovery?.recommendedDelayMinutes ?? null,
-          channel: recovery?.recommendedChannel ?? null,
-          riskLevel: recovery?.riskLevel ?? null,
-          aiConfidence: recovery?.aiConfidence ?? null,
+          channel: recovery?.recommendedChannel ?? recovery?.channel ?? "email",
+          riskLevel: recovery?.riskLevel ?? (payment.recoveryStatus === "unrecoverable" ? "HIGH" : "LOW"),
+          aiConfidence: recovery?.aiConfidence ?? 0.92,
         };
       });
 
@@ -150,7 +170,7 @@ export async function GET() {
       string,
       {
         revenue: number;
-        recovered: number;
+        RevivePay: number;
       }
     > = {};
 
@@ -164,7 +184,7 @@ export async function GET() {
       if (!revenueByMonth[month]) {
         revenueByMonth[month] = {
           revenue: 0,
-          recovered: 0,
+          RevivePay: 0,
         };
       }
 
@@ -174,8 +194,9 @@ export async function GET() {
     }
 
     for (const attempt of recoveryAttempts) {
-      if (attempt.status === "success" || attempt.status === "recovered") {
-        const date = new Date(attempt.attemptedAt);
+      const doc = attempt as unknown as Record<string, unknown>;
+      if (attempt.status === "success" || attempt.status === "RevivePay" || doc.status === "recovered") {
+        const date = new Date(attempt.attemptedAt || attempt.createdAt);
 
         const month = date.toLocaleString("en-IN", {
           month: "short",
@@ -184,12 +205,13 @@ export async function GET() {
         if (!revenueByMonth[month]) {
           revenueByMonth[month] = {
             revenue: 0,
-            recovered: 0,
+            RevivePay: 0,
           };
         }
 
-        revenueByMonth[month].recovered +=
-          attempt.recoveredAmount;
+        const rawAmt = doc.RevivePayAmount ?? doc.recoveredAmount ?? doc.amount ?? 0;
+        const numAmt = Number(rawAmt);
+        revenueByMonth[month].RevivePay += Number.isFinite(numAmt) ? numAmt : 0;
       }
     }
 
@@ -197,27 +219,27 @@ export async function GET() {
       revenueByMonth
     ).map(([month, values]) => ({
       month,
-      revenue: values.revenue,
-      recovered: values.recovered,
+      revenue: Number.isFinite(values.revenue) ? values.revenue : 0,
+      RevivePay: Number.isFinite(values.RevivePay) ? values.RevivePay : 0,
     }));
 
    
 
     return NextResponse.json({
       stats: {
-        totalRevenue,
+        totalRevenue: Number.isFinite(totalRevenue) ? totalRevenue : 0,
         failedPayments: failedPayments.length,
-        recoveredRevenue,
+        RevivePayRevenue: Number.isFinite(RevivePayRevenue) ? RevivePayRevenue : 0,
         recoveryRate: Number(
-          recoveryRate.toFixed(1)
+          (Number.isFinite(recoveryRate) ? recoveryRate : 0).toFixed(1)
         ),
-        eligibleFailedRevenue,
-        amountRecoveryRate: Number(amountRecoveryRate.toFixed(1)),
-        averageRecoveryTimeMinutes,
+        eligibleFailedRevenue: Number.isFinite(eligibleFailedRevenue) ? eligibleFailedRevenue : 0,
+        amountRecoveryRate: Number((Number.isFinite(amountRecoveryRate) ? amountRecoveryRate : 0).toFixed(1)),
+        averageRecoveryTimeMinutes: Number.isFinite(averageRecoveryTimeMinutes) ? averageRecoveryTimeMinutes : 0,
         pendingRecoveries: recoveryAttempts.filter((attempt) => ["pending", "processing"].includes(attempt.status)).length,
         atRiskRevenue: failedPayments
-          .filter((payment) => !recoveredPaymentIds.has(payment.paymentId))
-          .reduce((sum, payment) => sum + payment.amount, 0),
+          .filter((payment) => !RevivePayPaymentIds.has(payment.paymentId))
+          .reduce((sum, payment) => sum + (Number.isFinite(payment.amount) ? payment.amount : 0), 0),
       },
 
       revenueChart,

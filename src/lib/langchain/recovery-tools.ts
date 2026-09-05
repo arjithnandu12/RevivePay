@@ -72,7 +72,7 @@ export async function getRecoverySummary(
       0
     );
 
-  const recoveredAmount =
+  const RevivePayAmount =
     payments
       .filter(
         (p) => p.status === "success"
@@ -89,7 +89,7 @@ export async function getRecoverySummary(
     successfulPayments: successful,
     failedPayments: failed,
     totalAttempts,
-    recoveredAmount,
+    RevivePayAmount,
   };
 }
 

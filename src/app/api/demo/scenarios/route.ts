@@ -17,7 +17,7 @@ const scenarios = {
     email: "demo-success@recover-ai.local",
     amount: 12500,
     failureReason: "bank_error",
-    description: "Transient bank failure recovered through a Razorpay payment link.",
+    description: "Transient bank failure RevivePay through a Razorpay payment link.",
   },
   blocked_card: {
     customerId: "DEMO_CUSTOMER_BLOCKED",
@@ -80,8 +80,10 @@ export async function POST(request: Request) {
           failureSource: "bank",
           failureStep: "authorization",
           attempts: 1,
-          recoveryStatus: parsed.data.scenario === "successful_recovery" ? "recovered" : parsed.data.scenario === "blocked_card" ? "unrecoverable" : "pending",
+          recoveryStatus: parsed.data.scenario === "successful_recovery" ? "RevivePay" : parsed.data.scenario === "blocked_card" ? "unrecoverable" : "pending",
           recoveryAction: parsed.data.scenario === "successful_recovery" ? "send_reminder" : parsed.data.scenario === "blocked_card" ? "no_action" : null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true }
@@ -97,12 +99,14 @@ export async function POST(request: Request) {
       aiReason: scenario.description,
       status: parsed.data.scenario === "successful_recovery" ? "success" : parsed.data.scenario === "bounded_retry" ? "failed" : "failed",
       attemptedAt: new Date(Date.now() - (attemptCount - index) * 60000),
-      recoveredAmount: parsed.data.scenario === "successful_recovery" ? scenario.amount : 0,
+      RevivePayAmount: parsed.data.scenario === "successful_recovery" ? scenario.amount : 0,
       failureReason: parsed.data.scenario === "bounded_retry" ? "retry_limit_reached" : parsed.data.scenario === "blocked_card" ? "policy_blocked" : null,
       aiConfidence: 0.94,
       riskLevel: parsed.data.scenario === "blocked_card" ? "HIGH" : "MEDIUM",
       suggestedMessage: "Your payment needs attention. Use the secure Razorpay payment link to complete it.",
-      paymentUrl: parsed.data.scenario === "successful_recovery" ? "https://rzp.io/demo-recovered" : null,
+      paymentUrl: parsed.data.scenario === "successful_recovery" ? "https://rzp.io/demo-RevivePay" : null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     })));
 
     await AuditEvent.deleteMany({ paymentId });
@@ -126,13 +130,13 @@ export async function POST(request: Request) {
         metadata: { attemptCount },
       },
       ...(parsed.data.scenario === "successful_recovery" ? [{
-        eventId: `audit_${paymentId}_recovered`,
+        eventId: `audit_${paymentId}_RevivePay`,
         paymentId,
         actor: "razorpay" as const,
         layer: "razorpay" as const,
         action: "recovery_payment_confirmed",
         reason: "Demo Razorpay recovery payment verified.",
-        metadata: { recoveredAmount: scenario.amount },
+        metadata: { RevivePayAmount: scenario.amount },
       }] : []),
     ]);
 

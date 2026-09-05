@@ -29,7 +29,7 @@ export interface IPayment extends Document {
   recoveryStatus:
     | "pending"
     | "in_progress"
-    | "recovered"
+    | "RevivePay"
     | "unrecoverable"
     | "refunded";
 
@@ -128,7 +128,7 @@ const PaymentSchema =
         enum: [
           "pending",
           "in_progress",
-          "recovered",
+          "RevivePay",
           "unrecoverable",
           "refunded",
         ],

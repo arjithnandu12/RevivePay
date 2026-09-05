@@ -1,16 +1,12 @@
 # RevivePay
 an autonomous revenue recovery platform built for Razorpay merchants. RevivePay solves this with an intelligent agent that analyzes the root cause of every payment failure and generates personalized, multi-channel recovery workflows—all strictly governed by deterministic fintech guardrails."
 
- # Recovered
-
-Recovered is a Next.js revenue-recovery dashboard using MongoDB, Razorpay, email, and an advisory AI policy workflow. Twilio communication is intentionally on hold.
-
 ## Local setup
 
 1. Run `npm install`.
 2. Copy `.env.example` to `.env.local`.
 3. Set `MONGODB_URI` and the provider credentials needed for the feature being tested.
-4. Run `npm run dev` and open `http://localhost:3000`.
+4. Run `npm run dev` and open `http://localhost:3004`.
 
 Local development permits API requests without `APP_API_KEY` so the existing dashboard works. In production, set `APP_API_KEY` and send it as `Authorization: Bearer <key>` or `x-api-key`. Do not embed an API key in browser code; use a real authenticated session before production deployment.
 

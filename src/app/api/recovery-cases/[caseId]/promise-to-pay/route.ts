@@ -44,7 +44,7 @@ export async function POST(request: Request, { params }: Context) {
 
     const payment = await Payment.findOne({ paymentId: caseId }).lean();
     if (!payment) return NextResponse.json({ success: false, error: "Recovery case not found." }, { status: 404 });
-    if (["recovered", "refunded"].includes(payment.recoveryStatus)) return NextResponse.json({ success: false, error: "This payment cannot accept a new promise after recovery or refund." }, { status: 409 });
+    if (["RevivePay", "refunded"].includes(payment.recoveryStatus)) return NextResponse.json({ success: false, error: "This payment cannot accept a new promise after recovery or refund." }, { status: 409 });
     if (parsed.data.dueAt.getTime() <= Date.now()) return NextResponse.json({ success: false, error: "Promise due date must be in the future." }, { status: 400 });
 
     await PromiseToPay.updateMany({ paymentId: caseId, status: "active" }, { $set: { status: "cancelled", brokenAt: new Date() } });

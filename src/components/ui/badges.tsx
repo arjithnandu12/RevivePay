@@ -35,7 +35,11 @@ export function StatusBadge({
     scheduled: { tone: "policy", label: "Scheduled" },
     in_progress: { tone: "agent", label: "AI Recovery In Progress" },
     escalated: { tone: "danger", label: "Escalated" },
-    success: { tone: "success", label: "Recovered" },
+    success: { tone: "success", label: "RevivePay" },
+    RevivePay: { tone: "success", label: "RevivePay" },
+    recovered: { tone: "success", label: "RevivePay" },
+    unrecoverable: { tone: "danger", label: "Blocked by Policy" },
+    retry_limit_reached: { tone: "danger", label: "Retry Limit Reached" },
     failed: { tone: "danger", label: "Failed" },
     refunded: { tone: "warning", label: "Refunded · Recovery stopped" },
   };

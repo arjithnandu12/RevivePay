@@ -73,7 +73,7 @@ interface AiDecision {
   suggestedMessage?: string | null;
   paymentUrl?: string | null;
   status?: string | null;
-  recoveredAmount?: number;
+  RevivePayAmount?: number;
   emailSent?: boolean;
   selectedChannel?:
     | "email"
@@ -656,7 +656,7 @@ async function updatePromise(promiseId: string, status: PromiseToPay["status"]) 
               {recCase.customer} ·{" "}
               <span className="font-num">
                 ₹
-                {recCase.amount.toLocaleString(
+                {(recCase.amount ?? 0).toLocaleString(
                   "en-IN"
                 )}
               </span>{" "}
@@ -680,7 +680,7 @@ async function updatePromise(promiseId: string, status: PromiseToPay["status"]) 
             <dl className="mt-4 space-y-3.5">
               <Row
                 label="Amount"
-                value={`₹${recCase.amount.toLocaleString(
+                value={`₹${(recCase.amount ?? 0).toLocaleString(
                   "en-IN"
                 )}`}
                 mono
@@ -729,7 +729,7 @@ async function updatePromise(promiseId: string, status: PromiseToPay["status"]) 
             <dl className="mt-4 space-y-3.5">
               <Row
                 label="Customer LTV"
-                value={`₹${customerIntelligence.lifetimeValue.toLocaleString(
+                value={`₹${(customerIntelligence.lifetimeValue ?? 0).toLocaleString(
                   "en-IN"
                 )}`}
                 mono
@@ -756,7 +756,7 @@ async function updatePromise(promiseId: string, status: PromiseToPay["status"]) 
 
               <Row
                 label="Average payment"
-                value={`₹${customerIntelligence.averagePayment.toLocaleString(
+                value={`₹${(customerIntelligence.averagePayment ?? 0).toLocaleString(
                   "en-IN"
                 )}`}
                 mono
@@ -808,7 +808,7 @@ async function updatePromise(promiseId: string, status: PromiseToPay["status"]) 
 
               <Row
                 label="Expected recovery"
-                value={`₹${aiDecision.expectedRecovery.toLocaleString(
+                value={`₹${(aiDecision.expectedRecovery ?? 0).toLocaleString(
                   "en-IN"
                 )}`}
                 mono
@@ -996,7 +996,7 @@ async function updatePromise(promiseId: string, status: PromiseToPay["status"]) 
             {promises.length === 0 ? <p className="rounded-md border border-dashed border-border px-4 py-5 text-center text-[12px] text-text-tertiary">No promise recorded yet.</p> : promises.map((promise) => (
               <div key={promise.id} className="flex flex-col gap-3 rounded-md border border-border bg-surface p-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-[12.5px] font-medium text-text-primary">{promise.channel.toUpperCase()} · ₹{promise.promisedAmount.toLocaleString("en-IN")}</p>
+                  <p className="text-[12.5px] font-medium text-text-primary">{promise.channel.toUpperCase()} · ₹{(promise.promisedAmount ?? 0).toLocaleString("en-IN")}</p>
                   <p className="mt-1 text-[11.5px] text-text-tertiary">Due {formatDateTime(promise.dueAt)}{promise.notes ? ` · ${promise.notes}` : ""}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1411,13 +1411,13 @@ async function updatePromise(promiseId: string, status: PromiseToPay["status"]) 
             <p className="mt-2 text-[13px] leading-relaxed text-text-secondary">
               {confirmAction ===
                 "execute" &&
-                `This will execute the recovery action for ${recCase.paymentId} (₹${recCase.amount.toLocaleString(
+                `This will execute the recovery action for ${recCase.paymentId} (₹${(recCase.amount ?? 0).toLocaleString(
                   "en-IN"
                 )}) via Razorpay.`}
 
               {confirmAction ===
                 "send_link" &&
-                `This will send a new payment link to ${recCase.customer} for ₹${recCase.amount.toLocaleString(
+                `This will send a new payment link to ${recCase.customer} for ₹${(recCase.amount ?? 0).toLocaleString(
                   "en-IN"
                 )}.`}
 

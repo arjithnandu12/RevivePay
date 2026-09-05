@@ -202,7 +202,7 @@ export default function PaymentDetailsPage() {
           <div className="rounded-lg border border-border bg-surface p-5">
             <p className="text-[12.5px] text-text-secondary">Amount</p>
             <p className="font-num mt-2 text-[24px] font-semibold text-text-primary">
-              ₹{payment.amount.toLocaleString("en-IN")}
+              ₹{(payment.amount ?? 0).toLocaleString("en-IN")}
             </p>
             <p className="mt-1 text-[11px] text-text-tertiary">
               {payment.currency}
@@ -240,7 +240,7 @@ export default function PaymentDetailsPage() {
               />
               <InfoRow
                 label="Amount"
-                value={`₹${payment.amount.toLocaleString("en-IN")}`}
+                value={`₹${(payment.amount ?? 0).toLocaleString("en-IN")}`}
                 mono
               />
               <InfoRow label="Currency" value={payment.currency} mono />
@@ -434,12 +434,12 @@ export default function PaymentDetailsPage() {
               <CustomerStat label="Email" value={payment.customer.email} />
               <CustomerStat
                 label="Lifetime Value"
-                value={`₹${payment.customer.lifetimeValue.toLocaleString("en-IN")}`}
+                value={`₹${(payment.customer.lifetimeValue ?? 0).toLocaleString("en-IN")}`}
                 mono
               />
               <CustomerStat
                 label="Monthly Value"
-                value={`₹${payment.customer.monthlyValue.toLocaleString("en-IN")}`}
+                value={`₹${(payment.customer.monthlyValue ?? 0).toLocaleString("en-IN")}`}
                 mono
               />
             </div>

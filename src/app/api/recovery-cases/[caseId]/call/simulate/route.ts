@@ -145,7 +145,7 @@ export async function POST(
 
     if (
       payment.recoveryStatus ===
-      "recovered"
+      "RevivePay"
     ) {
       communication.status =
         "completed";
@@ -164,7 +164,7 @@ export async function POST(
         ended: true,
 
         agentResponse:
-          "Your payment has already been recovered. Thank you!",
+          "Your payment has already been RevivePay. Thank you!",
 
         communicationId,
       });

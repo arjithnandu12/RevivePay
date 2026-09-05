@@ -16,7 +16,7 @@ import {
 } from "../src/lib/recovery-lifecycle";
 
 function attempt(status: RecoveryAttemptState["status"], number: number): RecoveryAttemptState {
-  return { attemptNumber: number, status, recoveredAmount: status === "recovered" ? 1000 : 0 };
+  return { attemptNumber: number, status, RevivePayAmount: status === "RevivePay" ? 1000 : 0 };
 }
 
 async function main() {
@@ -32,11 +32,11 @@ async function main() {
   const second = [attempt("failed", 1), attempt("processing", 2)];
   assert.equal(nextAttemptNumber(second), 3, "6. next attempt uses recovery count, not Payment.attempts");
 
-  const recovered = applyRecoverySuccess(second, 2);
-  assert.equal(recovered[1].status, "recovered", "7. payment capture recovers the matching attempt");
-  assert.equal(recovered[0].status, "failed", "8. earlier attempt remains failed");
+  const RevivePay = applyRecoverySuccess(second, 2);
+  assert.equal(RevivePay[1].status, "RevivePay", "7. payment capture recovers the matching attempt");
+  assert.equal(RevivePay[0].status, "failed", "8. earlier attempt remains failed");
 
-  const withSpeculativeThird = [attempt("failed", 1), attempt("recovered", 2), attempt("processing", 3)];
+  const withSpeculativeThird = [attempt("failed", 1), attempt("RevivePay", 2), attempt("processing", 3)];
   assert.equal(applyRecoverySuccess(withSpeculativeThird, 2)[2].status, "cancelled", "9. late success cancels later active attempts");
 
   const events = new Set<string>();
@@ -48,9 +48,9 @@ async function main() {
   assert.equal(canCreateAttempt(threeFailed, 3), false, "13. third failed attempt reaches the limit");
   assert.equal(nextAttemptNumber(threeFailed), 4, "14. fourth attempt is identifiable but blocked");
 
-  const refund = applyRecoverySuccess([attempt("recovered", 1)], 1);
-  assert.equal(refund[0].status, "recovered", "15. refund processing does not erase recovery history");
-  assert.equal(refund[0].recoveredAmount, 1000, "16. recovered amount remains auditable for refund reconciliation");
+  const refund = applyRecoverySuccess([attempt("RevivePay", 1)], 1);
+  assert.equal(refund[0].status, "RevivePay", "15. refund processing does not erase recovery history");
+  assert.equal(refund[0].RevivePayAmount, 1000, "16. RevivePay amount remains auditable for refund reconciliation");
 
   const unknown = JSON.parse(await analyzeFailureTool.invoke({ failureReason: "unknown_provider_error", failureCode: "unknown_provider_error", failureSource: "provider", failureStep: "authorization", attempts: 1, previousFailureReasons: [] }));
   assert.equal(unknown.category, "unknown", "17. unknown failure is conservative");
@@ -65,7 +65,7 @@ async function main() {
   assert.equal(canCreateAttempt([], 0), false, "22. zero retry limit blocks creation");
   assert.equal(applyRecoverySuccess([attempt("pending", 1), attempt("processing", 2)], 2)[0].status, "cancelled", "23. pending attempt is cancelled after another succeeds");
   assert.equal(countActiveAttempts([attempt("cancelled", 1), attempt("failed", 2)]), 1, "24. cancelled attempts do not inflate the count");
-  assert.equal(applyRecoverySuccess([attempt("failed", 2)], 2)[0].status, "recovered", "25. matching recovery payment is the source of truth");
+  assert.equal(applyRecoverySuccess([attempt("failed", 2)], 2)[0].status, "RevivePay", "25. matching recovery payment is the source of truth");
 
   assert.throws(() => parseAIRecommendationResponse("not-json"), "26. malformed AI JSON is rejected");
   assert.throws(() => parseAIRecommendationResponse(JSON.stringify({ strategy: "retry_payment" })), "27. incomplete AI response is rejected");

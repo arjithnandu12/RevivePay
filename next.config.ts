@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     "ramble-geriatric-footbath.ngrok-free.dev",
   ],
   reactCompiler: true,
+  devIndicators:false
 
 };
 

@@ -42,12 +42,12 @@ export async function POST(
 
     if (
       payment.recoveryStatus ===
-      "recovered"
+      "RevivePay"
     ) {
       return NextResponse.json(
         {
           error:
-            "Payment already recovered.",
+            "Payment already RevivePay.",
         },
         { status: 400 }
       );

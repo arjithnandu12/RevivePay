@@ -93,7 +93,7 @@ function deriveStatus(
   recoveryStatus: string,
   attemptStatus: string | undefined
 ): "pending" | "scheduled" | "in_progress" | "escalated" | "success" | "refunded" {
-  if (recoveryStatus === "recovered") return "success";
+  if (recoveryStatus === "RevivePay") return "success";
   if (recoveryStatus === "refunded") return "refunded";
   if (recoveryStatus === "unrecoverable") return "escalated";
   if (recoveryStatus === "in_progress") {

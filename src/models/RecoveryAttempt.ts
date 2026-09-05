@@ -26,14 +26,14 @@ export interface IRecoveryAttempt extends Document {
     | "pending"
     | "processing"
     | "success"
-    | "recovered"
+    | "RevivePay"
     | "failed"
     | "cancelled";
 
   attemptedAt: Date;
   completedAt?: Date | null;
 
-  recoveredAmount: number;
+  RevivePayAmount: number;
 
   failureReason?: string | null;
 
@@ -137,7 +137,7 @@ const RecoveryAttemptSchema =
           "pending",
           "processing",
           "success",
-          "recovered",
+          "RevivePay",
           "failed",
           "cancelled",
         ],
@@ -155,7 +155,7 @@ const RecoveryAttemptSchema =
         default: null,
       },
 
-      recoveredAmount: {
+      RevivePayAmount: {
         type: Number,
         default: 0,
         min: 0,

@@ -58,7 +58,7 @@ export default function PayPage() {
         amount: data.order.amount,
         currency: data.order.currency,
 
-        name: "Recovered",
+        name: "RevivePay",
         description: "Test Payment",
 
         order_id: data.order.id,
@@ -155,7 +155,7 @@ export default function PayPage() {
             </div>
             <div>
               <p className="text-[13.5px] font-semibold text-text-primary">
-                Recovered
+                RevivePay
               </p>
               <p className="text-[10.5px] text-text-tertiary">
                 Powered by Razorpay

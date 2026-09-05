@@ -41,7 +41,7 @@ export default function AppShell({
           </div>
           <div className="leading-tight">
             <p className="text-[13.5px] font-semibold tracking-tight text-text-primary">
-              Recovered
+              RevivePay
             </p>
             <p className="text-[10.5px] text-text-tertiary">
               Autonomous Revenue Recovery

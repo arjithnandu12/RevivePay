@@ -10,7 +10,7 @@ interface AgentStats {
   metrics: {
     paymentsAnalyzedToday: number;
     recoveryActions: number;
-    revenueRecovered: number;
+    revenueRevivePay: number;
     casesEscalated: number;
   };
   rules: {
@@ -235,19 +235,19 @@ export default function AgentPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Metric
             label="Payments analyzed today"
-            value={stats.metrics.paymentsAnalyzedToday.toLocaleString("en-IN")}
+            value={(stats.metrics.paymentsAnalyzedToday ?? 0).toLocaleString("en-IN")}
           />
           <Metric
             label="Recovery actions"
-            value={stats.metrics.recoveryActions.toLocaleString("en-IN")}
+            value={(stats.metrics.recoveryActions ?? 0).toLocaleString("en-IN")}
           />
           <Metric
-            label="Revenue recovered"
-            value={`₹${stats.metrics.revenueRecovered.toLocaleString("en-IN")}`}
+            label="Revenue RevivePay"
+            value={`₹${(stats.metrics.revenueRevivePay ?? 0).toLocaleString("en-IN")}`}
           />
           <Metric
             label="Cases escalated"
-            value={stats.metrics.casesEscalated.toLocaleString("en-IN")}
+            value={(stats.metrics.casesEscalated ?? 0).toLocaleString("en-IN")}
           />
         </div>
 
@@ -336,7 +336,7 @@ export default function AgentPage() {
               <div className="rise-in mt-5 rounded-md border border-success-border bg-success-bg px-4 py-3 text-center">
                 <p className="text-[13px] text-text-secondary">Simulation complete</p>
                 <p className="font-num count-flash mt-1 text-[22px] font-semibold text-success">
-                  ₹49,999 Recovered (demo)
+                  ₹49,999 RevivePay (demo)
                 </p>
               </div>
             )}
@@ -367,11 +367,11 @@ export default function AgentPage() {
               <Row label="Retry limit" value={stats.rules.retryLimit.toString()} />
               <Row
                 label="High-value threshold"
-                value={`₹${stats.rules.highValueThreshold.toLocaleString("en-IN")}`}
+                value={`₹${(stats.rules.highValueThreshold ?? 0).toLocaleString("en-IN")}`}
               />
               <Row
                 label="Human approval threshold"
-                value={`₹${stats.rules.humanApprovalThreshold.toLocaleString("en-IN")}`}
+                value={`₹${(stats.rules.humanApprovalThreshold ?? 0).toLocaleString("en-IN")}`}
               />
               <Row label="Suspicious payments" value={stats.rules.suspiciousPayments} />
               <Row

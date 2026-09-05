@@ -277,7 +277,7 @@ export default function SettingsPage() {
               }
             />
             <ToggleField
-              label="Email me when a payment is recovered"
+              label="Email me when a payment is RevivePay"
               checked={settings.notifications.emailOnRecovery}
               onChange={(v) =>
                 setSettings({

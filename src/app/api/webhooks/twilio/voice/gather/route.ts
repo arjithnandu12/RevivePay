@@ -116,14 +116,14 @@ export async function POST(
 
   if (
     payment.recoveryStatus ===
-    "recovered"
+    "RevivePay"
   ) {
     response.say(
       {
         voice: "alice",
         language: "en-IN",
       },
-      "It looks like your payment has already been recovered. Thank you."
+      "It looks like your payment has already been RevivePay. Thank you."
     );
 
     response.hangup();

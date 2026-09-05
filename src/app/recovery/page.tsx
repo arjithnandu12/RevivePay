@@ -150,7 +150,7 @@ export default function RecoveryCasesPage() {
               scheduled: "Scheduled",
               in_progress: "In Progress",
               escalated: "Escalated",
-              success: "Recovered",
+              success: "RevivePay",
             }}
           />
 
@@ -212,7 +212,7 @@ export default function RecoveryCasesPage() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-num text-[13px] font-medium text-text-primary">
-                        ₹{c.amount.toLocaleString("en-IN")}
+                        ₹{(c.amount ?? 0).toLocaleString("en-IN")}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-[13px] text-text-secondary">

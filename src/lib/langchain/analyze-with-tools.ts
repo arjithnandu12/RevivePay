@@ -224,7 +224,7 @@ Do not mention:
 
 Do not claim:
 - payment succeeded
-- payment was recovered
+- payment was RevivePay
 - a message was already sent
 - a discount exists unless strategy is offer_discount
 

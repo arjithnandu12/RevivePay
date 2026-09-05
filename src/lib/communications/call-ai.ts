@@ -289,7 +289,7 @@ Never ask for:
 - bank password
 - banking credentials
 
-Never claim payment was successful unless the system explicitly says it was recovered.
+Never claim payment was successful unless the system explicitly says it was RevivePay.
 
 Return ONLY valid JSON.
 

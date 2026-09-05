@@ -2,13 +2,13 @@ export type RecoveryAttemptStatus =
   | "pending"
   | "processing"
   | "failed"
-  | "recovered"
+  | "RevivePay"
   | "cancelled";
 
 export interface RecoveryAttemptState {
   attemptNumber: number;
   status: RecoveryAttemptStatus;
-  recoveredAmount: number;
+  RevivePayAmount: number;
 }
 
 export function countActiveAttempts(attempts: RecoveryAttemptState[]) {
@@ -30,7 +30,7 @@ export function applyRecoverySuccess(
 ) {
   return attempts.map((attempt) => {
     if (attempt.attemptNumber === successfulAttemptNumber) {
-      return { ...attempt, status: "recovered" as const };
+      return { ...attempt, status: "RevivePay" as const };
     }
     if (["pending", "processing"].includes(attempt.status)) {
       return { ...attempt, status: "cancelled" as const };

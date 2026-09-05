@@ -433,7 +433,7 @@ async function completeRecovery({
 
   if (
     originalPayment.recoveryStatus ===
-    "recovered"
+    "RevivePay"
   ) {
     await markWebhookProcessed(
       eventId,
@@ -446,7 +446,7 @@ async function completeRecovery({
 
       duplicate: true,
 
-      recovered: true,
+      RevivePay: true,
 
       paymentId:
         originalPayment.paymentId,
@@ -455,7 +455,7 @@ async function completeRecovery({
 
  
 
-  const recoveredAmount =
+  const RevivePayAmount =
     typeof razorpayPayment.amount ===
     "number"
       ? razorpayPayment.amount / 100
@@ -466,7 +466,7 @@ async function completeRecovery({
   const session =
     await mongoose.startSession();
 
-  let alreadyRecovered = false;
+  let alreadyRevivePay = false;
 
   try {
     await session.withTransaction(
@@ -480,13 +480,13 @@ async function completeRecovery({
                 originalPayment.paymentId,
 
               recoveryStatus: {
-                $ne: "recovered",
+                $ne: "RevivePay",
               },
             },
             {
               $set: {
                 recoveryStatus:
-                  "recovered",
+                  "RevivePay",
 
                 recoveryAction:
                   recoveryAttempt.strategy,
@@ -501,7 +501,7 @@ async function completeRecovery({
           );
 
         if (!paymentToRecover) {
-          alreadyRecovered = true;
+          alreadyRevivePay = true;
 
           return;
         }
@@ -520,9 +520,9 @@ async function completeRecovery({
             },
             {
               $set: {
-                status: "recovered",
+                status: "RevivePay",
 
-                recoveredAmount,
+                RevivePayAmount,
 
                 completedAt: new Date(),
 
@@ -608,7 +608,7 @@ async function completeRecovery({
           reason: "Razorpay payment webhook verified.",
           metadata: {
             razorpayPaymentId: razorpayPayment.id,
-            recoveredAmount,
+            RevivePayAmount,
           },
         });
 
@@ -625,7 +625,7 @@ async function completeRecovery({
                 successfulPayments: 1,
 
                 lifetimeValue:
-                  recoveredAmount,
+                  RevivePayAmount,
               },
             },
             {
@@ -661,7 +661,7 @@ async function completeRecovery({
     await session.endSession();
   }
 
-  if (alreadyRecovered) {
+  if (alreadyRevivePay) {
     await markWebhookProcessed(
       eventId,
 
@@ -673,7 +673,7 @@ async function completeRecovery({
 
       duplicate: true,
 
-      recovered: true,
+      RevivePay: true,
 
       paymentId:
         originalPayment.paymentId,
@@ -708,7 +708,7 @@ async function completeRecovery({
     recoveryOrderId:
       orderId,
 
-    recoveredAmount,
+    RevivePayAmount,
   });
 
   console.log(
@@ -720,7 +720,7 @@ async function completeRecovery({
 
     eventId,
 
-    recovered: true,
+    RevivePay: true,
 
     paymentId:
       originalPayment.paymentId,
@@ -728,7 +728,7 @@ async function completeRecovery({
     recoveryAttemptId:
       recoveryAttempt._id.toString(),
 
-    recoveredAmount,
+    RevivePayAmount,
 
     recoveryRazorpayPaymentId,
 
@@ -954,7 +954,7 @@ async function handleFailedRecovery({
 
     if (
       originalPayment.recoveryStatus ===
-      "recovered"
+      "RevivePay"
     ) {
       await markWebhookProcessed(
         eventId,
@@ -967,7 +967,7 @@ async function handleFailedRecovery({
 
         duplicate: true,
 
-        recovered: true,
+        RevivePay: true,
 
         recoveryPaymentFailed: true,
 
@@ -1075,7 +1075,7 @@ async function handleFailedRecovery({
   ) {
     if (
       originalPayment.recoveryStatus !==
-      "recovered"
+      "RevivePay"
     ) {
       originalPayment.recoveryStatus =
         "unrecoverable";
@@ -1147,7 +1147,7 @@ async function handleFailedRecovery({
 
   if (
     originalPayment.recoveryStatus !==
-    "recovered"
+    "RevivePay"
   ) {
     originalPayment.recoveryStatus =
       "pending";

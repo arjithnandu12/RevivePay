@@ -33,7 +33,7 @@ interface DashboardData {
   stats: {
     totalRevenue: number;
     failedPayments: number;
-    recoveredRevenue: number;
+    RevivePayRevenue: number;
     recoveryRate: number;
     eligibleFailedRevenue?: number;
     amountRecoveryRate?: number;
@@ -46,7 +46,7 @@ interface DashboardData {
   revenueChart: {
     month: string;
     revenue: number;
-    recovered: number;
+    RevivePay: number;
   }[];
 
   riskDistribution: {
@@ -96,18 +96,41 @@ export default function DashboardPage() {
   const [selectedPayment, setSelectedPayment] =
     useState<DashboardData["failedPaymentsList"][number] | null>(null);
   const [demoLoading, setDemoLoading] = useState<string | null>(null);
+  const [activeProof, setActiveProof] = useState<{
+    paymentId: string;
+    scenario: string;
+    label: string;
+    description: string;
+  } | null>(null);
   const [period, setPeriod] = useState("This month");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   async function runDemoScenario(scenario: string) {
     setDemoLoading(scenario);
     try {
-      await fetch("/api/demo/scenarios", {
+      const response = await fetch("/api/demo/scenarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scenario }),
       });
+      const resData = await response.json();
+      if (resData?.paymentId) {
+        const scenarioLabel =
+          scenario === "successful_recovery"
+            ? "Successful recovery"
+            : scenario === "blocked_card"
+            ? "Blocked by policy"
+            : "Bounded retry";
+        setActiveProof({
+          paymentId: resData.paymentId,
+          scenario,
+          label: scenarioLabel,
+          description: resData.description,
+        });
+      }
       await fetchDashboard(true);
+    } catch (err) {
+      console.error("Scenario error:", err);
     } finally {
       setDemoLoading(null);
     }
@@ -349,32 +372,63 @@ if (loading) {
                   key={scenario}
                   onClick={() => runDemoScenario(scenario)}
                   disabled={demoLoading !== null}
-                  className="rounded-md border border-border bg-surface px-3 py-2 text-[12px] font-medium text-text-secondary hover:bg-surface-hover disabled:opacity-50"
+                  className={`rounded-md border px-3 py-2 text-[12px] font-medium transition disabled:opacity-50 ${
+                    activeProof?.scenario === scenario
+                      ? "border-agent bg-agent/15 text-text-primary ring-1 ring-agent/50"
+                      : "border-border bg-surface text-text-secondary hover:bg-surface-hover"
+                  }`}
                 >
                   {demoLoading === scenario ? "Loading..." : label}
                 </button>
               ))}
             </div>
           </div>
+
+          {activeProof && (
+            <div className="mt-3.5 flex flex-col gap-2.5 rounded-lg border border-agent/40 bg-surface p-3 text-xs md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-success animate-pulse" />
+                <span className="font-semibold text-text-primary">Live Proof Active:</span>
+                <span className="font-mono font-medium text-agent">{activeProof.paymentId}</span>
+                <span className="text-text-tertiary">·</span>
+                <span className="text-text-secondary">{activeProof.description}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/recovery/${activeProof.paymentId}`}
+                  className="rounded border border-border bg-bg-elevated px-2.5 py-1 text-[11.5px] font-medium text-text-primary hover:bg-surface-hover transition"
+                >
+                  View in Recovery →
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setActiveProof(null)}
+                  className="text-text-tertiary hover:text-text-primary text-[11px]"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Revenue"
-            value={`₹${data.stats.totalRevenue.toLocaleString("en-IN")}`}
+            value={`₹${(data.stats.totalRevenue ?? 0).toLocaleString("en-IN")}`}
             icon={<IndianRupee size={15} />}
           />
 
           <StatCard
             title="Failed Payments"
-            value={data.stats.failedPayments.toString()}
+            value={(data.stats.failedPayments ?? 0).toString()}
             icon={<AlertTriangle size={15} />}
             tone="danger"
           />
 
           <StatCard
-            title="Recovered Revenue"
-            value={`₹${data.stats.recoveredRevenue.toLocaleString(
+            title="RevivePay Revenue"
+            value={`₹${(data.stats.RevivePayRevenue ?? 0).toLocaleString(
               "en-IN"
             )}`}
             icon={<CheckCircle2 size={15} />}
@@ -434,7 +488,7 @@ if (loading) {
                 </h2>
 
                 <p className="mt-0.5 text-[12px] text-text-tertiary">
-                  Revenue generated vs revenue recovered
+                  Revenue generated vs revenue RevivePay
                 </p>
               </div>
 
@@ -446,7 +500,7 @@ if (loading) {
 
                 <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-sm bg-success" />
-                  Recovered
+                  RevivePay
                 </span>
               </div>
             </div>
@@ -510,11 +564,11 @@ if (loading) {
 
                   <Line
                     type="monotone"
-                    dataKey="recovered"
+                    dataKey="RevivePay"
                     stroke="#34b27a"
                     strokeWidth={2}
                     dot={false}
-                    name="Recovered"
+                    name="RevivePay"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -664,22 +718,31 @@ if (loading) {
                   data.failedPaymentsList.map((payment) => (
                     <tr
                       key={payment.paymentId}
-                      className="border-b border-border last:border-0 hover:bg-surface-hover"
+                      className={`border-b border-border last:border-0 transition ${
+                        activeProof?.paymentId === payment.paymentId
+                          ? "bg-agent/10 hover:bg-agent/15 ring-1 ring-inset ring-agent/40"
+                          : "hover:bg-surface-hover"
+                      }`}
                     >
                       <td className="py-4">
                         <div className="text-[13px] font-medium text-text-primary">
                           {payment.customerId}
                         </div>
 
-                        <div className="font-num mt-0.5 text-[11.5px] text-text-tertiary">
-                          {payment.paymentId}
+                        <div className="font-num mt-0.5 flex items-center gap-1.5 text-[11.5px] text-text-tertiary">
+                          <span>{payment.paymentId}</span>
+                          {activeProof?.paymentId === payment.paymentId && (
+                            <span className="rounded bg-agent/20 px-1.5 py-0.5 text-[10px] font-semibold text-agent">
+                              LIVE PROOF
+                            </span>
+                          )}
                         </div>
                       </td>
 
                       <td className="py-4">
                         <span className="font-num text-[13px] font-medium text-text-primary">
                           ₹
-                          {payment.amount.toLocaleString(
+                          {(payment.amount ?? 0).toLocaleString(
                             "en-IN"
                           )}
                         </span>
@@ -793,7 +856,7 @@ if (loading) {
                     LTV:{" "}
                     <span className="font-num font-semibold text-text-primary">
                       ₹
-                      {customer.lifetimeValue.toLocaleString(
+                      {(customer.lifetimeValue ?? 0).toLocaleString(
                         "en-IN"
                       )}
                     </span>
@@ -940,10 +1003,10 @@ function StatusBadge({
   const normalized = status.toLowerCase();
 
   if (
-    normalized === "recovered" ||
+    normalized === "RevivePay" ||
     normalized === "success"
   ) {
-    return <Badge tone="success">RECOVERED</Badge>;
+    return <Badge tone="success">RevivePay</Badge>;
   }
 
   if (
@@ -1020,7 +1083,7 @@ function PaymentModal({
         <div className="mt-6 grid grid-cols-2 gap-3">
           <Detail
             label="Amount"
-            value={`₹${payment.amount.toLocaleString(
+            value={`₹${(payment.amount ?? 0).toLocaleString(
               "en-IN"
             )}`}
           />

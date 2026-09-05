@@ -168,9 +168,9 @@ export async function POST(
           success: true,
 
           message:
-            "Payment has already been recovered.",
+            "Payment has already been RevivePay.",
 
-          recovered: true,
+          RevivePay: true,
         });
       }
 

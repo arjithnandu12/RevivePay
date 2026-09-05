@@ -155,7 +155,7 @@ export default function PaymentsPage() {
           <StatCard title="Failed" value={failedCount.toString()} tone="danger" />
           <StatCard
             title="Revenue"
-            value={`₹${totalAmount.toLocaleString("en-IN")}`}
+            value={`₹${(totalAmount ?? 0).toLocaleString("en-IN")}`}
           />
         </div>
 
@@ -239,7 +239,7 @@ export default function PaymentsPage() {
 
                       <td className="px-6 py-4">
                         <p className="font-num text-[13px] font-semibold text-text-primary">
-                          ₹{payment.amount.toLocaleString("en-IN")}
+                          ₹{(payment.amount ?? 0).toLocaleString("en-IN")}
                         </p>
                         <p className="text-[11px] text-text-tertiary">
                           {payment.currency}

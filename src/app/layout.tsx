@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Recovered — Autonomous Revenue Recovery",
+  title: "RevivePay — Autonomous Revenue Recovery",
   description:
     "AI revenue recovery agent for Razorpay merchants: detects failed payments, analyzes context, and recovers revenue under deterministic policy control.",
 };

@@ -256,7 +256,7 @@ export async function GET(
           payment.recoveryStatus ===
             "in_progress" ||
           payment.recoveryStatus ===
-            "recovered",
+            "RevivePay",
       },
 
       {
@@ -348,8 +348,8 @@ export async function GET(
             ? recovery.failureReason ??
               recovery.errorMessage ??
               "Recovery attempt failed"
-            : recovery.status === "success" || recovery.status === "recovered"
-              ? `Recovered ₹${recovery.recoveredAmount.toLocaleString(
+            : recovery.status === "success" || recovery.status === "RevivePay"
+              ? `RevivePay ₹${recovery.RevivePayAmount.toLocaleString(
                   "en-IN"
                 )}`
               : null,
@@ -357,7 +357,7 @@ export async function GET(
         state:
           recovery.status === "failed"
             ? "failure"
-            : recovery.status === "success" || recovery.status === "recovered"
+            : recovery.status === "success" || recovery.status === "RevivePay"
               ? "success"
               : "pending",
       });
@@ -723,8 +723,8 @@ export async function GET(
         status:
           attempt?.status ?? null,
 
-        recoveredAmount:
-          attempt?.recoveredAmount ?? 0,
+        RevivePayAmount:
+          attempt?.RevivePayAmount ?? 0,
 
         emailSent:
           attempt?.emailSent ?? false,
@@ -793,8 +793,8 @@ export async function GET(
               recovery.recoveryRazorpayPaymentId ??
               null,
 
-            recoveredAmount:
-              recovery.recoveredAmount,
+            RevivePayAmount:
+              recovery.RevivePayAmount,
 
             emailSent:
               recovery.emailSent ??
@@ -914,7 +914,7 @@ function deriveStatus(
   | "success" {
   if (
     recoveryStatus ===
-    "recovered"
+    "RevivePay"
   ) {
     return "success";
   }

@@ -79,9 +79,9 @@ export async function startRecoveryCall(
     throw new Error("Recovery attempt not found.");
   }
 
-  if (payment.recoveryStatus === "recovered") {
+  if (payment.recoveryStatus === "RevivePay") {
     throw new Error(
-      "Payment has already been recovered."
+      "Payment has already been RevivePay."
     );
   }
 

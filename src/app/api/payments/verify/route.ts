@@ -369,7 +369,7 @@ async function verifyRecoveryPayment({
 
   if (
     payment.recoveryStatus ===
-    "recovered"
+    "RevivePay"
   ) {
     return NextResponse.json({
       success: true,
@@ -401,7 +401,7 @@ async function verifyRecoveryPayment({
           status:
             "success",
 
-          recoveredAmount:
+          RevivePayAmount:
             payment.amount,
 
           recoveryOrderId:
@@ -451,16 +451,16 @@ async function verifyRecoveryPayment({
           originalPaymentId,
 
         recoveryStatus: {
-          $ne: "recovered",
+          $ne: "RevivePay",
         },
       },
       {
         $set: {
           recoveryStatus:
-            "recovered",
+            "RevivePay",
 
           recoveryAction:
-            "payment_recovered",
+            "payment_RevivePay",
         },
       },
       {
@@ -528,7 +528,7 @@ async function verifyRecoveryPayment({
     success: true,
 
     message:
-      "Payment successfully recovered",
+      "Payment successfully RevivePay",
 
     recovery: {
       originalPaymentId,
@@ -539,7 +539,7 @@ async function verifyRecoveryPayment({
       recoveryPaymentId:
         razorpayPaymentId,
 
-      recoveredAmount:
+      RevivePayAmount:
         updatedPayment.amount,
     },
 

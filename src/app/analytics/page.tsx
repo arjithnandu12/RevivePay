@@ -15,11 +15,11 @@ import AppShell from "@/components/layout/app-shell";
 
 interface AnalyticsData {
   recoveryRateSeries: { date: string; rate: number }[];
-  revenueRecoveredSeries: { date: string; amount: number }[];
+  revenueRevivePaySeries: { date: string; amount: number }[];
   failedPaymentsSeries: { date: string; count: number }[];
-  byFailureReason: { reason: string; recovered: number; rate: number }[];
-  byCustomerSegment: { segment: string; recovered: number; rate: number }[];
-  byStrategy: { strategy: string; recovered: number; rate: number }[];
+  byFailureReason: { reason: string; RevivePay: number; rate: number }[];
+  byCustomerSegment: { segment: string; RevivePay: number; rate: number }[];
+  byStrategy: { strategy: string; RevivePay: number; rate: number }[];
 }
 
 function inr(n: number) {
@@ -145,9 +145,9 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Revenue Recovered">
+          <ChartCard title="Revenue RevivePay">
             <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={data.revenueRecoveredSeries} margin={{ left: -20, right: 8 }}>
+              <LineChart data={data.revenueRevivePaySeries} margin={{ left: -20, right: 8 }}>
                 <CartesianGrid stroke="#21262f" vertical={false} />
                 <XAxis dataKey="date" tick={{ fill: "#5c6370", fontSize: 10 }} axisLine={{ stroke: "#21262f" }} tickLine={false} />
                 <YAxis tick={{ fill: "#5c6370", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={inr} width={44} />
@@ -175,7 +175,7 @@ export default function AnalyticsPage() {
             title="Recovery by Failure Reason"
             rows={data.byFailureReason.map((r) => ({
               label: r.reason,
-              recovered: r.recovered,
+              RevivePay: r.RevivePay,
               rate: r.rate,
             }))}
           />
@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
             title="Recovery by Customer Segment"
             rows={data.byCustomerSegment.map((r) => ({
               label: r.segment,
-              recovered: r.recovered,
+              RevivePay: r.RevivePay,
               rate: r.rate,
             }))}
           />
@@ -191,7 +191,7 @@ export default function AnalyticsPage() {
             title="AI Strategy Performance"
             rows={data.byStrategy.map((r) => ({
               label: r.strategy,
-              recovered: r.recovered,
+              RevivePay: r.RevivePay,
               rate: r.rate,
             }))}
           />
@@ -222,7 +222,7 @@ function BreakdownCard({
   rows,
 }: {
   title: string;
-  rows: { label: string; recovered: number; rate: number }[];
+  rows: { label: string; RevivePay: number; rate: number }[];
 }) {
   return (
     <div className="rounded-lg border border-border bg-surface p-5">
@@ -236,7 +236,7 @@ function BreakdownCard({
               <div className="flex items-center justify-between text-[12.5px]">
                 <span className="text-text-primary">{r.label}</span>
                 <span className="font-num text-text-secondary">
-                  {inr(r.recovered)} · {r.rate}%
+                  {inr(r.RevivePay)} · {r.rate}%
                 </span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-border">

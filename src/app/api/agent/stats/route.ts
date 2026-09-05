@@ -13,16 +13,16 @@ export async function GET() {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const [paymentsAnalyzedToday, recoveryActions, recoveredPayments, casesEscalated] =
+    const [paymentsAnalyzedToday, recoveryActions, RevivePayPayments, casesEscalated] =
       await Promise.all([
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         RecoveryAttempt.countDocuments({ createdAt: { $gte: todayStart } } as any),
         RecoveryAttempt.countDocuments({}),
-        Payment.find({ recoveryStatus: "recovered" }).select("amount").lean(),
+        Payment.find({ recoveryStatus: "RevivePay" }).select("amount").lean(),
         Payment.countDocuments({ recoveryStatus: "unrecoverable" }),
       ]);
 
-    const revenueRecovered = recoveredPayments.reduce((sum, p) => sum + p.amount, 0);
+    const revenueRevivePay = RevivePayPayments.reduce((sum, p) => sum + p.amount, 0);
 
     return NextResponse.json({
    
@@ -30,7 +30,7 @@ export async function GET() {
       metrics: {
         paymentsAnalyzedToday,
         recoveryActions,
-        revenueRecovered,
+        revenueRevivePay,
         casesEscalated,
       },
       rules: {

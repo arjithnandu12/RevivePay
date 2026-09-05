@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-
 import { connectDB } from "@/lib/mongodb";
 import Payment from "@/models/Payment";
 import Customer from "@/models/Customer";
@@ -21,11 +20,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, email, amount } = parsed.data;
+    const { name, email, amount, phone, mobile } = parsed.data;
+    const customerPhone = phone || mobile || undefined;
 
     await connectDB();
-
-    
 
     let customer = await Customer.findOne({ email });
 
@@ -36,8 +34,7 @@ export async function POST(request: Request) {
         customerId,
         name,
         email,
-
-       
+        phone: customerPhone,
         plan: "Test Plan",
         monthlyValue: amount,
         lifetimeValue: 0,
@@ -50,6 +47,12 @@ export async function POST(request: Request) {
         customer.customerId
       );
     } else {
+      if (customerPhone && !customer.phone) {
+        await Customer.updateOne(
+          { _id: customer._id },
+          { $set: { phone: customerPhone } }
+        );
+      }
       console.log(
         "Existing customer:",
         customer.customerId
@@ -73,23 +76,14 @@ export async function POST(request: Request) {
       order.id
     );
 
-   
-
     const payment = await Payment.create({
       paymentId: `pending_${order.id}`,
-
       orderId: order.id,
-
       customerId: customer.customerId,
-
       amount,
-
       currency: "INR",
-
       status: "pending",
-
       attempts: 0,
-
       recoveryStatus: "pending",
     });
 
@@ -100,19 +94,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-
       customer: {
         customerId: customer.customerId,
         name: customer.name,
         email: customer.email,
       },
-
       order: {
         id: order.id,
         amount: order.amount,
         currency: order.currency,
       },
-
       payment: {
         paymentId: payment.paymentId,
         orderId: payment.orderId,
