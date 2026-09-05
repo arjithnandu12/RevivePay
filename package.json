@@ -1,17 +1,32 @@
 {
-  "name": "recover-ai",
+  "name": "Recovered",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:policy": "tsx scripts/test-policy.ts",
+    "test:recovery": "tsx scripts/test-recovery-lifecycle.ts",
+    "test": "npm run test:policy && npm run test:recovery"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@langchain/core": "^1.2.9",
+    "@langchain/openai": "^1.5.10",
+    "dotenv": "^17.4.2",
+    "lucide-react": "^1.34.0",
+    "mongoose": "^9.9.3",
     "next": "16.3.2",
+    "openai": "^7.8.0",
+    "razorpay": "^2.9.8",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "recharts": "^3.10.1",
+    "resend": "^6.26.0",
+    "twilio": "^6.1.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -22,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }
